@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>単語カード＋不規則動詞表</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #e0f7fa;
+      display: flex;
+    }
+
+    .tag-list {
+      position: fixed;
+      top: 100px;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .tag-item {
+      background: #00bcd4;
+      color: white;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+      transform: translateX(-30%);
+      white-space: nowrap;
+    }
+
+    .tag-item:hover {
+      background: #0097a7;
+      transform: translateX(0);
+    }
+
+    .tag-item.active {
+      background: #ffcc00;
+      color: #333;
+      transform: translateX(0);
+    }
+
+    .wordbook {
+      margin-left: 90px;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .word-card {
+      width: 240px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .word-card:hover {
+      transform: scale(1.05);
+    }
+
+    .english {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .japanese {
+      font-size: 1em;
+      color: #444;
+    }
+
+    .irregular-table {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 15px;
+      font-size: 1em;
+      border-collapse: collapse;
+    }
+
+    .irregular-table th,
+    .irregular-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
+    }
+
+    .irregular-table th {
+      background: #f0f0f0;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!--indexリストを載せているところ。個々の部分をクリックして表示単語を変更できる-->
+
+<div class="tag-list">
+  <div class="tag-item active" data-category="noun">名</div>
+  <div class="tag-item" data-category="verb">動</div>
+  <div class="tag-item" data-category="adj">形</div>
+  <div class="tag-item" data-category="adv">副</div>
+  <div class="tag-item" data-category="irregular">不</div>
+  <div class="tag-item" data-category="idiom">熟</div>
+
+</div>
+
+<div class="wordbook" id="wordbook"></div>
+
+<!-- 不規則動詞表 -->
+<table class="irregular-table hidden" id="irregularTable">
+  <thead>
+    <tr>
+      <th>原形</th>
+      <th>過去形</th>
+      <th>過去分詞</th>
+      <th>意味</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>go</td><td>went</td><td>gone</td><td>行く</td></tr>
+    <tr><td>see</td><td>saw</td><td>seen</td><td>見る</td></tr>
+    <tr><td>come</td><td>came</td><td>come</td><td>来る</td></tr>
+    <tr><td>give</td><td>gave</td><td>given</td><td>与える</td></tr>
+    <tr><td>take</td><td>took</td><td>taken</td><td>取る</td></tr>
+    <tr><td>eat</td><td>ate</td><td>eaten</td><td>食べる</td></tr>
+    <tr><td>write</td><td>wrote</td><td>written</td><td>書く</td></tr>
+    <tr><td>drink</td><td>drank</td><td>drunk</td><td>飲む</td></tr>
+  </tbody>
+</table>
+
+<script>
+  const wordData = {
+    noun: [
+      {english: "side", japanese: "側、面"},
+      {english: "musical", japanese: "ミュージカル"},
+      {english: "actor", japanese: "俳優"},
+      {english: "genre", japanese: "分類(ジャンル)"},
+      {english: "adventure", japanese: "冒険"},
+      {english: "adult", japanese: "大人"},
+      {english: "quality", japanese: "質"},
+      {english: "animation", japanese: "アニメーション"},
+      {english: "drawing", japanese: "(線で)書いたもの"},
+      {english: "addition", japanese: "加えること"},
+      {english: "existence", japanese: "存在"},
+      {english: "root", japanese: "根、根っこ"},
+      {english: "roots", japanese: "起源、ルーツ"},
+      {english: "movement", japanese: "動き、運動"},
+      {english: "scroll", japanese: "巻物、掛け軸"},
+      {english: "techique", japanese: "技術"},
+      {english: "advantage",japanese: "利点"},
+      {english: "taste", japanese: "味"},
+      {english: "essay", japanese: "随筆、作文"},
+      {english: "designer", japanese: "設計者"},
+      {english: "message", japanese: "伝言"},
+      {english: "accessory", japanese: "アクセサリー、付属品"},
+      {english: "impact", japanese: "影響、衝撃"},
+      {english: "clothing", japanese: "衣類"},
+      {english: "chemical", japanese: "化学薬品、化学物質"},
+      {englsih: "vegan", japanese: "絶対菜食主義者"},
+      {englsih: "leather", japanese: "革(なめし革)"},
+      {englsih: "company", japanese: "会社、仲間"},
+      {english: "wool", japanese:"羊毛、ウール"},
+      {english: "fur", japanese: "[動物の柔らかい]毛"},
+      {english: "woker", japanese: "働く人"},
+      {english: "condition", japanese: "状態、状況"},
+      {english: "wage", japanese: "賃金"},
+      {english: "labor", japanese: "労働"}
+    ],
+    //カンマを付けておかないとチェックエラーになる。
+    //nounは名詞
+    verb: [
+      {english: "discover", japanese: "発見する"},
+      {english: "been", japanese: "(⇐be)"},
+      {englsih: "match", japanese: "調和する"},
+      {english: "ignore", japanese: "無視する"},
+      {english: "drawn", japanese: "drawの過去形"},
+      {english: "express", japanese: "表現する"},
+      {english: "influence", japanese: "影響する、影響を及ぼす"},
+      {englsih: "link", japanese: "つなぐ"},
+      {english: "interview", japanese: "面接、取材、インタビュー"},
+      {englsih: "sleep(ing)", japanese: "眠る"},
+      {englsih: "recycle", japanese: "再生利用する"},
+      {english: "become", japanese: "becomeの過去分詞"},
+      {english: "introduce", japanese: "導入する、紹介する"},
+      {englsih: "lead", jaoanese: "導く"},
+      {english: "avoid", japanese: "さける"},
+      {englsih: "include", jaoanese: "含む"},
+      {english: "prohibit", japanese: "禁止する"},
+    ],
+    //verbは動詞
+    adj: [
+      {english: "regional", japanese: "地域の"},
+      {english: "global", japanese: "世界的な、地球規模の"},
+      {english: "delicate", japanese: "繊細な"},
+      {english: "positive", japanese: "前向きな"},
+      {englsih: "negative", japanese: "後ろ向きな、良くない(考え)"},
+      {english: "ethical", japanese: "倫理的な"},
+      {english: "eco-friendly", japanese: "環境に優しい"},
+      {englsih: "less", japanese: "もっと少ない"},
+      {english: "animal-free", japanese: "動物性原料を含んでいない"},
+      {english: "developing", japanese: "発展途上の"},
+      {english: "fair", japanese: "公平な、公正な"},
+      {english: "working", japanese: "(名詞の前で)働く"},
+      {english: "responsible", japanese: "責任がある"}
+    ],
+    //adjは形容詞
+    adv: [
+      {english: "finally", japanese: "ついに、やっと、最後に"},
+      {english: "ever", japanese: "<疑問文で>これまでに"},
+      {english: "entirely", japanese: "完全に、全く、すっかり"},
+      {english: "already", japanese: "すでに、もう"},
+      {english: "yet", japanese: "<疑問文で>もう、<否定文で>まだ"},
+      {english: "morally", japanese: "道徳的に"},
+      {english: "moreover", japanese: "さらに、そのうえ"}
+    ],
+    //advは副詞
+    idiom: [
+      {english: "have never been to", japanese: "〜に一度も行ったことがない"},
+      {english: "have been to", japanese: "〜に行ったことがある"},
+      {english: "take advantage of", japanese: "〜を利用する"},
+      {english: "I've", japanese: "⇐I have"},
+      {english: "haven't", japanese: "⇐have not"},
+      {english: "in addition", japanese: "⇐〜に付け加えて(ディスコースマーカー)"},
+      {english: "It is said (that)", japanese: "〜と言われている"},
+      {english: "How long~?", japanese: "どのくらい長く〜？"}
+],
+//idiomは英熟語・語句
+  };
+
+  const wordbook = document.getElementById('wordbook');
+  const irregularTable = document.getElementById('irregularTable');
+  const tagItems = document.querySelectorAll('.tag-item');
+
+  function updateWordbook(category) {
+    wordbook.innerHTML = '';
+    irregularTable.classList.add('hidden');
+
+    if (category === 'irregular') {
+      irregularTable.classList.remove('hidden');
+      return;
+    }
+
+    (wordData[category] || []).forEach(word => {
+      const card = document.createElement('div');
+      card.className = 'word-card';
+      card.innerHTML = `
+        <div class="english">${word.english}</div>
+        <div class="japanese">${word.japanese}</div>
+      `;
+      card.onclick = () => {
+        const utter = new SpeechSynthesisUtterance(word.english);
+        utter.lang = 'en-US';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+      };
+      wordbook.appendChild(card);
+    });
+  }
+
+  tagItems.forEach(tag => {
+    tag.addEventListener('click', () => {
+      tagItems.forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      updateWordbook(tag.dataset.category);
+    });
+  });
+
+  updateWordbook('noun');
+</script>
+
+</body>
+</html>
